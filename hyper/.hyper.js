@@ -1,110 +1,91 @@
 "use strict";
-// Future versions of Hyper may add additional config options,
-// which will not automatically be merged into this file.
-// See https://hyper.is#cfg for all currently supported options.
 
 module.exports = {
   config: {
     updateChannel: "stable",
 
-    // Font
+    // --- Appearance ---
     fontSize: 16,
-    fontFamily: '"FiraCode Nerd Font", "FiraCode NF", "Fira Code", Menlo, monospace',
+    fontFamily: '"FiraCode Nerd Font", "FiraCode NF", Menlo, monospace',
     fontWeight: "normal",
     fontWeightBold: "bold",
-    lineHeight: 1,
+    lineHeight: 1.1,
     letterSpacing: 0,
 
-    // Cursor
     cursorColor: "rgba(0,255,140,0.9)",
     cursorAccentColor: "#000",
     cursorShape: "BEAM",
     cursorBlink: true,
 
-    // Colors / Background
-    foregroundColor: "#ffffff",
-    backgroundColor: "rgba(0,0,0,0.85)",
-    selectionColor: "rgba(248,28,229,0.3)",
-    borderColor: "#333",
+    foregroundColor: "#00ff66",
+    backgroundColor: "rgba(0, 0, 0, 0.10)",
+    selectionColor: "rgba(0, 255, 102, 0.25)",
+    borderColor: "#003300",
 
-    // Custom CSS
-    css: "",
-    termCSS: "",
-
-    // Startup dir
-    workingDirectory: "",
-
-    showHamburgerMenu: "",
-    showWindowControls: "",
-
-    // Padding
     padding: "12px 18px",
 
-    // Base color palette (wird von Theme-Plugin überschrieben, ist aber okay)
-    colors: {
-      black: "#000000",
-      red: "#C51E14",
-      green: "#1DC121",
-      yellow: "#C7C329",
-      blue: "#0A2FC4",
-      magenta: "#C839C5",
-      cyan: "#20C5C6",
-      white: "#C7C7C7",
-      lightBlack: "#686868",
-      lightRed: "#FD6F6B",
-      lightGreen: "#67F86F",
-      lightYellow: "#FFFA72",
-      lightBlue: "#6A76FB",
-      lightMagenta: "#FD7CFC",
-      lightCyan: "#68FDFE",
-      lightWhite: "#FFFFFF",
-      limeGreen: "#32CD32",
-      lightCoral: "#F08080",
-    },
+    // --- MATRIX DARK GREEN CSS + Glow ---
+    css: `
+      .hyper_main {
+        background: rgba(0, 12, 0, 0.40) !important;
+        backdrop-filter: blur(16px) brightness(0.9) contrast(1.1);
+        box-shadow:
+          0 0 25px #00ff6688,
+          0 0 45px #00cc5588,
+          inset 0 0 25px #00ff6633,
+          inset 0 0 40px #00cc5522;
+        border-radius: 10px;
+        animation: matrixFlicker 3s infinite ease-in-out;
+      }
 
-    // Shell = pwsh 7
-    shell: "C:\\Program Files\\PowerShell\\7\\pwsh.exe",
+      .terms_terms {
+        background: transparent !important;
+      }
+
+      .terminal {
+        text-shadow: 0 0 6px #00ff66aa;
+      }
+
+      @keyframes matrixFlicker {
+        0%   { opacity: 0.98; }
+        50%  { opacity: 0.94; }
+        100% { opacity: 0.98; }
+      }
+    `,
+
+    termCSS: "",
+
+    // --- Shell / Startup ---
+    shell: "C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe",
     shellArgs: ["-NoLogo"],
 
-    env: {},
+    workingDirectory: "C:\\\\Users\\\\thomas.appelt",
+    preserveCWD: false,
 
-    bell: "SOUND",
-    // bellSoundURL: '/path/to/sound/file',
-
-    copyOnSelect: false,
-    defaultSSHApp: true,
+    copyOnSelect: true,
     quickEdit: true,
-
-    macOptionSelectionMode: "vertical",
     webGLRenderer: true,
-    webLinksActivationKey: "",
-    disableLigatures: true,
+    disableLigatures: false,
     disableAutoUpdates: false,
     screenReaderMode: false,
-    preserveCWD: true,
+    defaultSSHApp: true,
   },
 
-  // 🔥 Plugins – Neon + Utility + Fun
+  // --- Plugins (NO hyperpower anymore) ---
   plugins: [
-    // Theme / Style
-    "hyper-snazzy",         // Neon-Theme
-
-    // Utility
-    "hypercwd",             // neue Tabs/Splits im gleichen Ordner
-    "hyper-search",         // Ctrl+Shift+F – Suche im Terminal
-    "hyper-tabs-enhanced",  // bessere Tabs
-    "hyper-statusline",     // Statusleiste unten
-    "hyper-pane",           // bessere Split-Navigation
-
-    // Fun
-    "hyperpower"            // Partikel beim Tippen 😈
-  ],
+  "hyper-snazzy",
+  "hyper-statusline",
+  "hyper-tabs-enhanced",
+  "hyper-search"
+],
 
   localPlugins: [],
 
+  // --- tmux-like Pane Navigation ---
   keymaps: {
-    // 'window:devtools': 'cmd+alt+o',
+    "pane:prev": "alt+h",
+    "pane:next": "alt+l",
+    "pane:up": "alt+k",
+    "pane:down": "alt+j"
   },
 };
-
-//# sourceMappingURL=config-default.js.map

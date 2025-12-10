@@ -71,22 +71,7 @@ function caf($cmd) {
     }
 }
 
-# Simple AD login info
-function Get-ADLogonInfo {
-    [PSCustomObject]@{
-        Benutzer    = $env:USERNAME
-        Domain      = $env:USERDOMAIN
-        LogonServer = $env:LOGONSERVER
-    }
-}
 
-# Process top (CPU heavy)
-function top {
-    Get-Process |
-        Sort-Object CPU -Descending |
-        Select-Object -First 15 |
-        Format-Table -Auto
-}
 
 # Git graph
 function glog {
