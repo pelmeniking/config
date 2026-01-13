@@ -1,108 +1,154 @@
-########## BASIC RUNTIME SETTINGS ##########
+# ============================================================
+#  PowerShell Profile – Fallout / ROBCO Terminal
+#  User: thomas.appelt
+# ============================================================
 
-# Modern TLS
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls13
-
-# UTF-8 everywhere
+# --- Encoding ------------------------------------------------
 [console]::InputEncoding  = [System.Text.UTF8Encoding]::new()
 [console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
 
-########## ENVIRONMENT ##########
+# --- TLS -----------------------------------------------------
+[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls13
 
-$env:AZ_ENABLED = $false
-$repos = Join-Path $HOME 'repos'
+# ============================================================
+#  Helpers
+# ============================================================
 
-########## STARSHIP INIT ##########
-
-if (Get-Command starship -ErrorAction SilentlyContinue) {
-    Invoke-Expression (& starship init powershell)
-}
-
-########## MODULES ##########
-
-# PSReadLine (ohne problematischen Parameter)
-if (Get-Module -ListAvailable -Name PSReadLine) {
-    Import-Module PSReadLine
-
-    # Base settings
-    Set-PSReadLineOption -PredictionSource History
-    Set-PSReadLineOption -PredictionViewStyle InlineView
-    Set-PSReadLineOption -EditMode Windows
-    Set-PSReadLineOption -BellStyle None
-
-    # Keybindings
-    Set-PSReadLineKeyHandler -Key Ctrl+p -Function PreviousHistory
-    Set-PSReadLineKeyHandler -Key Ctrl+n -Function NextHistory
-    Set-PSReadLineKeyHandler -Key Ctrl+r -Function ReverseSearchHistory
-}
-
-# Devdeer CAF (nur wenn installiert)
-if (Get-Module -ListAvailable -Name Devdeer.caf) {
-    Import-Module Devdeer.caf
-}
-
-########## FUNCTIONS ##########
-
-# eza-based ls-family (fallback to Get-ChildItem)
-if (Get-Command eza -ErrorAction SilentlyContinue) {
-    function lsx { eza -1l --icons always --group-directories-first }
-    function lsa { eza -1l --icons always --group-directories-first --show-symlinks -a }
-} else {
-    function lsx { Get-ChildItem }
-    function lsa { Get-ChildItem -Force }
-}
-
-# Hydra project locator
-function hydra($name) {
-    $dirs = Get-ChildItem "$repos/Hydra/infrastructure" -Recurse -Filter "*$name*" -Depth 5 |
-            Where-Object { $_.PsIsContainer -eq $true }
-
-    if ($dirs.Length -eq 0) { return }
-
-    Set-Location $dirs[0]
-}
-
-# CAF-wrapper (with safety check)
-function caf($cmd) {
-    if (Get-Command Start-CafScoped -ErrorAction SilentlyContinue) {
-        Start-CafScoped -Command $cmd
-    } else {
-        Write-Warning "Start-CafScoped / Devdeer.caf nicht verfügbar."
+function Write-Type {
+    param(
+        [string]$Text,
+        [int]$Delay = 12
+    )
+    foreach ($c in $Text.ToCharArray()) {
+        Write-Host -NoNewline $c
+        Start-Sleep -Milliseconds $Delay
     }
+    Write-Host ""
 }
 
+# ============================================================
+#  Fake CRT Scanlines (Boot Effect)
+# ============================================================
 
+function Show-ScanlinesBoot {
+    param(
+        [int]$Frames = 10,
+        [int]$DelayMs = 30
+    )
 
-# Git graph
+    if ($host.Name -match 'ISE') { return }
+
+    $w = [Math]::Min([Console]::WindowWidth, 160)
+    $h = [Math]::Min([Console]::WindowHeight, 30)
+
+    $chars = @(' ', '░', '▒')
+    $green = [ConsoleColor]::DarkGreen
+
+    for ($f = 0; $f -lt $Frames; $f++) {
+        [Console]::SetCursorPosition(0,0)
+
+        for ($y = 0; $y -lt $h; $y++) {
+            $isLine = ((($y + $f) % 3) -eq 0)
+            if ($isLine) {
+                [Console]::ForegroundColor = $green
+                $fill = $chars[($f + $y) % $chars.Count]
+                [Console]::Write(($fill * $w))
+            }
+            else {
+                [Console]::Write((' ' * $w))
+            }
+            if ($y -lt ($h-1)) { [Console]::Write("`n") }
+        }
+        Start-Sleep -Milliseconds $DelayMs
+    }
+
+    [Console]::ResetColor()
+    Clear-Host
+}
+
+# ============================================================
+#  ROBCO INTRO (gekürzt, typed)
+# ============================================================
+
+if (-not $env:ROBCO_SHOWN) {
+    $env:ROBCO_SHOWN = "1"
+
+    # Toggle: $env:CRT="0" deaktiviert Scanlines
+    if ($env:CRT -ne "0") {
+        Show-ScanlinesBoot
+    }
+
+    Clear-Host
+    $Host.UI.RawUI.ForegroundColor = "DarkGreen"
+
+    Write-Type "ROBCO INDUSTRIES (TM) TERMLINK" 14
+    Write-Type "AUTHORIZED USER: $env:USERNAME" 10
+    Write-Type "SYSTEM NODE: $env:COMPUTERNAME" 10
+    Write-Type "STATUS: ONLINE" 10
+    Write-Host ""
+}
+
+# ============================================================
+#  Starship Prompt
+# ============================================================
+
+Invoke-Expression (&starship init powershell --print-full-init | Out-String)
+
+# ============================================================
+#  PSReadLine (History / UX)
+# ============================================================
+
+Import-Module PSReadLine
+
+Set-PSReadLineOption -PredictionSource History
+Set-PSReadLineOption -PredictionViewStyle InlineView
+Set-PSReadLineOption -BellStyle None
+
+# ============================================================
+#  Aliases & Tools
+# ============================================================
+
+function lsx { eza -1l --icons always --group-directories-first }
+function lsa { eza -1l --icons always --group-directories-first -a }
+
+function top {
+    Get-Process | Sort-Object CPU -Descending |
+    Select-Object -First 15 |
+    Format-Table -Auto
+}
+
 function glog {
     git log --graph --oneline --decorate --all
 }
-
-# Quick jump to repos
-function cdr { Set-Location $repos }
-
-# Project jump
-function cproj([string]$name) {
-    $target = Get-ChildItem -Path $repos -Directory -Recurse -Depth 2 |
-              Where-Object { $_.Name -like "*$name*" } |
-              Select-Object -First 1
-
-    if ($null -ne $target) {
-        Set-Location $target.FullName
-    } else {
-        Write-Host "Kein Projekt gefunden zu '$name' unter $repos." -ForegroundColor DarkYellow
-    }
-}
-
-########## ALIASES ##########
-
 Set-Alias gg glog
-Set-Alias -Name ls       -Value lsx
-Set-Alias -Name nslookup -Value Resolve-DnsName
-Set-Alias -Name netuse   -Value Get-SmbMapping
-Set-Alias -Name cat      -Value Get-Content
 
-# Hyper alias (nur wenn Program existiert)
-if (Test-Path "$env:LOCALAPPDATA\Programs\Hyper\Hyper.exe") {
-    Set-Alias hyper "$env:LOCALAPPDATA\Programs\Hyper\Hyper.exe"
+Set-Alias ls lsx
+Set-Alias cat Get-Content
+Set-Alias nslookup Resolve-DnsName
+
+# ============================================================
+#  Optional toggles (manuell)
+# ============================================================
+
+# CRT AUS:
+#   $env:CRT="0"; . $PROFILE
+#
+# CRT AN:
+#   Remove-Item Env:\CRT; . $PROFILE
+#
+# Intro erneut anzeigen:
+#   Remove-Item Env:\ROBCO_SHOWN; . $PROFILE
+#
+# ============================================================
+function Set-RobCoWindowTitle {
+    $path = (Get-Location).Path
+    $host.UI.RawUI.WindowTitle = "ROBCO INDUSTRIES (TM) — TERMLINK — NODE $env:COMPUTERNAME"
 }
+
+# Beim Start
+Set-RobCoWindowTitle
+
+# Nach jedem Befehl aktualisieren
+Register-EngineEvent PowerShell.OnIdle -Action {
+    Set-RobCoWindowTitle
+} | Out-Null

@@ -1,98 +1,104 @@
-"$schema" = 'https://starship.rs/config-schema.json'
+"$schema" = "https://starship.rs/config-schema.json"
 
-# -----------------------------------
-#  MAIN FORMAT
-# -----------------------------------
+# ------------------------------------------------
+# GLOBAL
+# ------------------------------------------------
+add_newline = true
+command_timeout = 1000
+
+# ------------------------------------------------
+# PROMPT FORMAT
+# ------------------------------------------------
 format = """
-$os$username$hostname$directory$git_branch$git_status$git_metrics\
-$cmd_duration$line_break$time $character
+[▌](green)\
+$username\
+[ @ ](green)\
+$hostname\
+[  ]()\
+$directory\
+$git_branch\
+$git_status\
+$line_break\
+[>_](#00aa00) \
 """
 
-palette = "neo_cyber"
-
-# -----------------------------------
-#  COLOR PALETTE
-# -----------------------------------
-[palettes.neo_cyber]
-green = "#00FF66"
-cyan = "#00E5FF"
-muted = "#555555"
-error = "#FF0055"
-
-# -----------------------------------
-#  OS MODULE (Windows Badge)
-# -----------------------------------
-[os]
-disabled = false
-style = "fg:cyan"
-format = "[](fg:cyan)[󰍲 ](bg:cyan fg:black)[](fg:cyan)"
-
-[os.symbols]
-Windows = "󰍲"
-
-# -----------------------------------
-#  USERNAME
-# -----------------------------------
+# ------------------------------------------------
+# USER
+# ------------------------------------------------
 [username]
 show_always = true
-style_user = "fg:green"
-format = "[ $user](fg:green)"
+style_user = "green"
+style_root = "red"
+format = "[$user]($style)"
 
-# -----------------------------------
-#  HOSTNAME
-# -----------------------------------
+# ------------------------------------------------
+# HOSTNAME
+# ------------------------------------------------
 [hostname]
 ssh_only = false
-format = " ● [$hostname](fg:cyan)"
-trim_at = ""
+style = "green"
+format = "[$hostname]($style)"
 
-# -----------------------------------
-#  DIRECTORY (inkl. Icon, kein custom!)
-# -----------------------------------
+# ------------------------------------------------
+# DIRECTORY
+# ------------------------------------------------
 [directory]
-style = "fg:cyan"
-read_only = ""
-read_only_style = "fg:error"
-truncation_length = 4
-truncation_symbol = "…/"
-# Ordner-Icon direkt hier:
-format = " [󰉋 $path]($style)"
+style = "green"
+format = "[  $path ]($style)"
+home_symbol = "~"
+truncation_length = 3
+truncate_to_repo = false
 
-# -----------------------------------
-#  GIT MODULES
-# -----------------------------------
+# ------------------------------------------------
+# GIT
+# ------------------------------------------------
 [git_branch]
-symbol = ""
-style = "fg:green"
-format = " [$symbol $branch]($style)"
+style = "green"
+format = "[  $branch ]($style)"
 
 [git_status]
-style = "fg:cyan"
-format = " [$all_status]($style)"
+style = "green"
+format = "[$all_status]($style)"
 
-[git_metrics]
-disabled = false
-format = " [$ahead_behind](fg:green)"
-
-# -----------------------------------
-#  COMMAND DURATION
-# -----------------------------------
-[cmd_duration]
-min_time = 300
-format = " [ $duration](fg:cyan)"
-
-# -----------------------------------
-#  TIME
-# -----------------------------------
+# ------------------------------------------------
+# TIME (subtle, optional)
+# ------------------------------------------------
 [time]
 disabled = false
+style = "green"
+format = "[ $time ]($style)"
 time_format = "%H:%M"
-format = "[ $time](fg:muted)"
 
-# -----------------------------------
-#  PROMPT CHARACTER
-# -----------------------------------
+# ------------------------------------------------
+# CHARACTER (fallback, not really used)
+# ------------------------------------------------
 [character]
-success_symbol = "[❯](fg:green)"
-error_symbol = "[❯](fg:error)"
-vicmd_symbol = "[❮](fg:cyan)"
+success_symbol = "[▶](green)"
+error_symbol = "[▶](red)"
+
+# ------------------------------------------------
+# DISABLE UNUSED MODULES (CLEAN)
+# ------------------------------------------------
+[aws]
+disabled = true
+
+[azure]
+disabled = true
+
+[docker_context]
+disabled = true
+
+[kubernetes]
+disabled = true
+
+[nodejs]
+disabled = true
+
+[python]
+disabled = true
+
+[rust]
+disabled = true
+
+[golang]
+disabled = true
